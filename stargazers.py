@@ -11,17 +11,20 @@ def main(repos, login, password, output_file):
     g = Github(login, password)
     prefix = 'https://github.com/'
     for repo in repos:
-        gs = GitHubStargazer(re.sub(prefix, '', repo))
+        reponame = re.sub(prefix, '', repo)
+        print(f'Start processing {reponame}...')
+        gs = GitHubStargazer(reponame)
         stargazers = gs.get_all_stargazers()
         for stargazer in stargazers:
             user = g.get_user(stargazer)
-            output.append({
-                'name': user.name,
-                'email': user.email,
-                'company': user.company,
-                'location': user.location
-            })
-    pd.DataFrame.from_records(output).to_csv(output_file, sep='\t')
+            if user.name and user.email and user.company:
+                output.append({
+                    'name': user.name,
+                    'email': user.email,
+                    'company': user.company,
+                    'location': user.location
+                })
+    pd.DataFrame.from_records(output).to_csv(output_file, sep='\t', index=False)
 
 
 if __name__ == "__main__":
