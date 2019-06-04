@@ -1,35 +1,44 @@
 import argparse
 import pandas as pd
 import re
+import time
+import github
 
 from github_stargazers.github import GitHub as GitHubStargazer
 from github import Github
+from github.GithubException import RateLimitExceededException
 
 
 def main(args):
     output = []
     g = Github(args.login, args.password)
+    repositories = g.search_repositories(query='topic:machine-learning')
     prefix = 'https://github.com/'
-    for repo in args.repos:
-        reponame = re.sub(prefix, '', repo)
-        print(f'Start processing {reponame}...')
-        gs = GitHubStargazer(reponame)
-        stargazers = gs.get_all_stargazers()
-        for stargazer in stargazers:
-            user = g.get_user(stargazer)
-            if args.email_required and not user.email:
-                continue
-            if args.company_required and not user.company:
-                continue
-            if args.location_required and not user.location:
-                continue
-            output.append({
-                'name': user.name,
-                'email': user.email,
-                'company': user.company,
-                'location': user.location
-            })
-    pd.DataFrame.from_records(output).to_csv(args.output_file, sep='\t', index=False)
+    for i, repo in enumerate(repositories):
+        #reponame = re.sub(prefix, '', repo)
+        try:
+            reponame = repo.full_name
+            print(f'Start processing {reponame}...')
+            gs = GitHubStargazer(reponame)
+            stargazers = gs.get_all_stargazers()
+            for stargazer in stargazers:
+                user = g.get_user(stargazer)
+                if args.email_required and not user.email:
+                    continue
+                if args.company_required and not user.company:
+                    continue
+                if args.location_required and not user.location:
+                    continue
+                output.append({
+                    'name': user.name,
+                    'email': user.email,
+                    'company': user.company,
+                    'location': user.location
+                })
+            pd.DataFrame.from_records(output).to_csv(args.output_file, sep='\t', index=False)
+        except RateLimitExceededException:
+            time.sleep(1000)
+    #pd.DataFrame.from_records(output).to_csv(args.output_file, sep='\t', index=False)
 
 
 if __name__ == "__main__":
