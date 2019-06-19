@@ -21,16 +21,16 @@ def get_users_from_stars(start_page, cache_dir):
         try:
             cache = cache_dir + '/' + str(n) + '.html'
             if os.path.exists(cache):
-                page = open(cache).read()
+                page = open(cache).read().decode('utf-8')
                 print('read from cache:', cache)
             else:
-                page = urllib.request.urlopen(start_page).read()
+                page = urllib.request.urlopen(start_page).read().decode('utf-8')
                 open(cache, 'w').write(page)
 
             n += 1
             ok = True
         except Exception as e:
-            print('get_replies::urlopen error' + str(e))
+            print('get_replies::urlopen error: ' + str(e))
             time.sleep(60)
 
     soup = BeautifulSoup(page, 'lxml')

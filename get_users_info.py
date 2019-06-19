@@ -34,12 +34,13 @@ def get_users_from_stars(start_page, cache_dir):
                 print('read from cache:', cache)
             else:
                 page = urllib.request.urlopen(start_page).read()
+                page = page.decode('utf-8')
                 open(cache, 'w').write(page)
 
             n += 1
             ok = True
         except Exception as e:
-            print('get_replies::urlopen error' + str(e))
+            print('get_replies::urlopen error: ' + str(e))
             time.sleep(60)
 
     soup = BeautifulSoup(page, 'lxml')
@@ -74,6 +75,7 @@ def get_all_users_from_repo(start_url, output_file):
         print('Next url -->', next_url)
         batch, next_url = get_users_from_stars(next_url, cache_dir)
         users += batch
+        if len(users) > 3: break
 
     with io.open(output_file, mode='w') as fout:
         json.dump(users, fout, indent=2)
@@ -143,7 +145,7 @@ def get_info_from_users_list(github_login, github_pass, all_users_file, json_for
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Example Heartex ML backend server with simple text classifier')
-    parser.add_argument('--output-file', dest='output_file', help='Output file', default='output.tsv')
+    parser.add_argument('--output-file', dest='output_file', help='Output file', default='output')
     parser.add_argument('--stargazer-page', dest='stargazer_page', help='URL to stargazer page', required=True)
     parser.add_argument('--login', dest='login', help='Github login', required=True)
     parser.add_argument('--password', dest='password', help='Github password', required=True)
@@ -152,4 +154,4 @@ if __name__ == "__main__":
     all_users_file = os.path.splitext(args.output_file)[0] + '.users.json'
 
     get_all_users_from_repo(args.stargazer_page, all_users_file)
-    get_info_from_users_list(args.login, args.password, args.output_file)
+    get_info_from_users_list(args.login, args.password, all_users_file)
