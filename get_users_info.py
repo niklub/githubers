@@ -9,6 +9,8 @@ import io
 import json
 import pandas as pd
 import argparse
+import requests
+import re
 
 from google import google
 from github import Github
@@ -57,6 +59,22 @@ def get_users_from_stars(start_page, cache_dir):
             next_url = a['href']
 
     return results, next_url
+
+
+def _try_find_by_events(username):
+    email = None
+    try:
+        r = requests.get(f'https://api.github.com/users/{username}/events/public')
+        r.raise_for_status()
+    except Exception as e:
+        print(f'Can\'t find email in events, reason: {e}')
+        pass
+    else:
+        p = re.match('.*"email":\s*"([^"]+)".*', r.content.decode('utf-8'))
+        if p:
+            email = p.group(1)
+            print('Found in commits!')
+    return email
 
 
 def get_all_users_from_repo(start_url, output_file):
@@ -113,10 +131,14 @@ def get_info_from_users_list(github_login, github_pass, all_users_file, json_for
         if username:
             try:
                 user = g.get_user(username)
-                if user.email:
+                if not user.email:
+                    email = _try_find_by_events(user.name or username)
+                else:
+                    email = user.email
+                if email:
                     out.append({
                         'name': user.name,
-                        'email': user.email,
+                        'email': email,
                         'location': user.location,
                         'company': user.company,
                         'repos': user.repos_url,
