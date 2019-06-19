@@ -18,7 +18,7 @@ def main(args):
         #reponame = re.sub(prefix, '', repo)
         try:
             reponame = repo.full_name
-            print(f'Start processing {reponame}...')
+
             gs = GitHubStargazer(reponame)
             stargazers = gs.get_all_stargazers()
             for stargazer in stargazers:
@@ -33,11 +33,15 @@ def main(args):
                     'name': user.name,
                     'email': user.email,
                     'company': user.company,
-                    'location': user.location
+                    'location': user.location,
+                    'repo': reponame
                 })
             pd.DataFrame.from_records(output).to_csv(args.output_file, sep='\t', index=False)
+            print(f'Repo {reponame} --> {len(stargazers)} stargazers found.')
         except RateLimitExceededException:
             time.sleep(1000)
+        except Exception:
+            pass
     #pd.DataFrame.from_records(output).to_csv(args.output_file, sep='\t', index=False)
 
 
