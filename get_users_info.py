@@ -75,7 +75,7 @@ def get_all_users_from_repo(start_url, output_file):
         print('Next url -->', next_url)
         batch, next_url = get_users_from_stars(next_url, cache_dir)
         users += batch
-        if len(users) > 3: break
+        # if len(users) > 3: break # for testing
 
     with io.open(output_file, mode='w') as fout:
         json.dump(users, fout, indent=2)
