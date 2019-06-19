@@ -9,10 +9,9 @@ pip3 install -r requirements.txt
 
 #### Run
 ```bash
-python3 stargazers.py --repos https://github.com/josephmisiti/awesome-machine-learning https://github.com/tensorflow/models \
+python3 get_users_info.py \
+--stargazer-page https://github.com/awslabs/amazon-sagemaker-examples/stargazers \
 --login my_github_login \
 --password my_github_password \
---output-file stargazers.tsv \
---email-required \
---company-required
+--output-file stargazers.tsv
 ```
